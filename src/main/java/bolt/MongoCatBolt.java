@@ -8,6 +8,7 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
+import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.util.JSON;
@@ -22,13 +23,14 @@ import java.util.Map;
 public class MongoCatBolt extends BaseRichBolt {
     private OutputCollector _collector;
     private MongoCollection<Document> col;
-    private MongoDatabase db;
 
     @Override
     public void prepare(Map map, TopologyContext topologyContext, OutputCollector outputCollector) {
         try {
             // To connect to mongodb server
-            MongoClient mongoClient = new MongoClient(Constantes.DB.Connection.URL);
+            MongoClientURI connectionString = new MongoClientURI(Constantes.DB.Connection.URL);
+            MongoClient mongoClient = new MongoClient(connectionString);
+            MongoDatabase db;
 
             // Now connect to your databases
             db = mongoClient.getDatabase(Constantes.DB.Connection.NAME);
@@ -48,7 +50,7 @@ public class MongoCatBolt extends BaseRichBolt {
         String decode = tuple.getStringByField("json");
 
         try {
-            Document object = (Document) JSON.parse(decode);
+            Document object = Document.parse(decode);
             col.insertOne(object);
 
             // Confirm that this tuple has been treated.

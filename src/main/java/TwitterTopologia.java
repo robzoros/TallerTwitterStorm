@@ -19,13 +19,14 @@ public class TwitterTopologia {
     public static void main(String[] args) throws Exception {
         /**************** SETUP ****************/
         String remoteClusterTopologyName = null;
+        consumerKey = Constantes.TweeterCredentials.consumerKey;
+        consumerSecret = Constantes.TweeterCredentials.consumerSecret;
+        accessToken = Constantes.TweeterCredentials.accessToken;
+        accessTokenSecret = Constantes.TweeterCredentials.accessTokenSecret;
+
         if (args!=null) {
             if (args.length==1) {
                 remoteClusterTopologyName = args[0];
-                consumerKey = Constantes.TweeterCredentials.consumerKey;
-                consumerSecret = Constantes.TweeterCredentials.consumerSecret;
-                accessToken = Constantes.TweeterCredentials.accessToken;
-                accessTokenSecret = Constantes.TweeterCredentials.accessTokenSecret;
             }
             // If credentials are provided as commandline arguments
             else if (args.length==4) {
