@@ -11,11 +11,16 @@ import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.util.JSON;
+import org.apache.commons.lang.ObjectUtils;
 import org.bson.BSON;
 import org.bson.Document;
+import twitter4j.JSONObject;
 
 import java.util.Map;
+
+import static com.mongodb.client.model.Filters.eq;
 
 /**
  * Created by utad on 6/05/17.
@@ -50,8 +55,17 @@ public class MongoCatBolt extends BaseRichBolt {
         String decode = tuple.getStringByField("json");
 
         try {
-            Document object = Document.parse(decode);
-            col.insertOne(object);
+            Document json = Document.parse(decode);
+            Long id = json.getLong("id");
+            Document object = new Document();
+
+            if (json.get("categoria") != null) object.append("categoria", json.get("categoria"));
+            if (json.get("location") != null) object.append("location", json.get("location"));
+            if (json.get("entidades") != null) object.append("entidades", json.get("entidades"));
+            object.append("text", json.get("text"));
+            object.append("lang", json.get("lang"));
+            object.append("created_at", json.get("created_at"));
+            col.updateOne(eq("_id", id), new Document("$set", object), (new UpdateOptions()).upsert(true));
 
             // Confirm that this tuple has been treated.
             _collector.ack(tuple);

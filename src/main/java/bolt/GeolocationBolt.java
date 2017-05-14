@@ -44,6 +44,7 @@ public class GeolocationBolt extends BaseRichBolt {
         //StringTokenizer st = new StringTokenizer(text);
 
         //String jsonS = tuple.getString(0);
+        String url = "";
         try {
             JSONObject json = new JSONObject(tuple.getString(0));
 
@@ -61,9 +62,9 @@ public class GeolocationBolt extends BaseRichBolt {
             }
              */
 
-            System.out.println(json.toString());
-            JSONArray jarray = json.getJSONArray("entidades").getJSONArray(0);
-            System.out.println(jarray.toString());
+            //System.out.println(json.toString());
+            JSONArray jarray = json.getJSONArray("entidades");
+            //System.out.println(jarray.toString());
             JSONArray salida = new JSONArray();
 
             for (int i = 0; i< jarray.length(); i++)
@@ -72,10 +73,12 @@ public class GeolocationBolt extends BaseRichBolt {
                 JSONObject jobject = jarray.getJSONObject(i);
                 String cat = jobject.getString("categoria");
                 String nombre = jobject.getString("nombre");
+                nombre = nombre.replace(' ', '+');
                 System.out.println(nombre);
                 if (cat.equals("Place"))
                 {
-                    URL peticion = new URL("http://maps.google.com/maps/api/geocode/json?address="+nombre+"&sensor=false");
+                    url = "http://maps.google.com/maps/api/geocode/json?address="+nombre+"&sensor=false";
+                    URL peticion = new URL(url);
                     HttpURLConnection connection = (HttpURLConnection) peticion.openConnection();
                     connection.connect();
 
@@ -103,7 +106,7 @@ public class GeolocationBolt extends BaseRichBolt {
             }
 
 
-            json.append("location", salida);
+            json.put("location", salida);
 
             /*
             {
@@ -127,6 +130,7 @@ public class GeolocationBolt extends BaseRichBolt {
             _collector.ack(tuple);
 
         } catch (twitter4j.JSONException | IOException e){
+            System.out.println("URL: " + url);
             e.printStackTrace();
         }
     }

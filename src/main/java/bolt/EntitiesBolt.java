@@ -46,7 +46,7 @@ public class EntitiesBolt extends BaseRichBolt {
             cadenaUrl = "https://api.dandelion.eu/datatxt/nex/v1/?social=True&min_confidence=0.6&country=-1&include=image%2Cabstract%2Ctypes%2Ccategories%2Clod&text=";
             cadenaUrl += json.getString("text").replaceAll("[^\\p{Alpha}\\p{Digit}]+","+").replace(' ', '+');
             cadenaUrl += "&token=" + Constantes.Dandelion.TOKEN;
-            System.out.println("Cadena URL:" + cadenaUrl);
+            //System.out.println("Cadena URL:" + cadenaUrl);
 
             URL url = new URL(cadenaUrl);
 
@@ -73,16 +73,17 @@ public class EntitiesBolt extends BaseRichBolt {
 
             JSONObject jsonResponse = new JSONObject(sb.toString());
             JSONArray results = jsonResponse.getJSONArray("annotations");
-            String categoria = "Otro";
             JSONArray entidades = new JSONArray();
             for (int i=0; i<results.length();i++) {
-                JSONObject annotation = results.getJSONObject(0);
+                String categoria = "Otro";
+                JSONObject annotation = results.getJSONObject(i);
+                String label = annotation.getString("label");
+                if (label.equals("HTTPS") || label.equals("HTTP")) continue;
                 String nombre = annotation.getString("title");
                 JSONArray tipos = annotation.getJSONArray("types");
                 for (int j= 0; j< tipos.length(); j++) {
                     String tipo = tipos.getString(j).substring(28);
-                    System.out.println("Tipo:" + tipo);
-                    if (tipo.equals("Place") || tipo.equals("Location") )
+                    if (tipo.equals("Place") || tipo.equals("Location") || tipo.equals("Organisation") )
                         categoria = "Place";
                 }
                 JSONObject entidad = new JSONObject();
@@ -91,7 +92,9 @@ public class EntitiesBolt extends BaseRichBolt {
                 entidades.put(entidad);
             }
 
-            json.append("entidades", entidades);
+            System.out.println("Entidades: " + entidades.toString());
+            json.put("entidades", entidades);
+            //System.out.println("Json: " + json.toString());
 
             _collector.emit(new Values(json.toString()));
 
